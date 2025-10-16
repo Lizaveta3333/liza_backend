@@ -29,7 +29,7 @@ async def get_user_by_email_or_phone(db: AsyncSession, email: str | None = None,
 async def create_user(db: AsyncSession, user: UserCreate) -> User:
     new_user = User(
         phone=user.phone,
-        email=user.email,
+        # email=user.email,
         hashed_password=hash_password(user.password),
         full_name=user.full_name,
         avatar=user.avatar,

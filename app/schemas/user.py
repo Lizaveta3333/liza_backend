@@ -7,7 +7,7 @@ from datetime import date
 
 class UserCreate(BaseModel):
     phone: str
-    email: EmailStr
+    # email: EmailStr
     password: str
     full_name: str
     avatar: str | None = None
@@ -27,7 +27,7 @@ class UserCreate(BaseModel):
 #     rating: Optional[int] = None
 class UserUpdate(BaseModel):
     phone: str | None = None
-    email: EmailStr | None = None
+    # email: EmailStr | None = None
     password: str | None = None
     full_name: str | None = None
     avatar: str | None = None
@@ -36,14 +36,13 @@ class UserUpdate(BaseModel):
     rating: float | None = None
 
 class UserLogin(BaseModel):
-    # email: EmailStr
-    username: EmailStr
+    username: str # make a phone validation
     password: str
 
 class UserResponse(BaseModel):
     id: int
     phone: str
-    email: str
+    # email: str
     full_name: str
     avatar: str | None = None
     about: str | None = None
@@ -57,7 +56,7 @@ class UserResponse(BaseModel):
 class User(BaseModel):
     id: int
     phone: str
-    email: str
+    # email: str
     full_name: str
     avatar: str | None = None
     about: str | None = None

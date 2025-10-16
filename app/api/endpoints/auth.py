@@ -14,12 +14,12 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/signup", response_model=UserResponse)
 async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     """Регистрация нового пользователя"""
-    existing_user = await get_user_by_email_or_phone(db, user.email)
+    existing_user = await get_user_by_email_or_phone(db, phone=user.phone)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="This phone already registered")
 
     if len(user.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
@@ -31,12 +31,14 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 @router.post("/login", response_model=ResponseTokensSchema)
 async def login_user(
     response: Response, 
+    user: UserLogin,
     db: AsyncSession = Depends(get_db),
-    user: UserLogin = Depends()
     # user: OAuth2PasswordRequestForm = Depends()
     ):
     """Аутентификация пользователя"""
-    existing_user = await get_user_by_email_or_phone(db, user.username)
+    print("start login_user")
+    existing_user = await get_user_by_email_or_phone(db, phone=user.username)
+    print(existing_user)
     if not existing_user or not verify_password(user.password, existing_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -45,7 +47,7 @@ async def login_user(
 
     response.set_cookie(key="access_token", value=access_token, httponly=True, samesite="Strict")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, samesite="Strict")
-
+    
     return ResponseTokensSchema(access_token=access_token, refresh_token=refresh_token)
 
 

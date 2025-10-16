@@ -10,11 +10,13 @@ class User(AsyncAttrs, Base):
     # email = Column(String, unique=True, index=True, nullable=False)
     # hashed_password = Column(String, nullable=False)
     id = Column(Integer, primary_key=True, index=True)
-    phone = Column(String, unique=True, index=True, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    full_name = Column(String, nullable=False)
-    avatar = Column(String, nullable=True)
-    about = Column(String, nullable=True)
-    birth_date = Column(Date, nullable=True)
-    rating = Column(Float, default=5)
+    phone = Column(String, unique=True, index=True, nullable=False) # reqr
+    # email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False) # reqr
+    full_name = Column(String, nullable=False) # reqr
+    about = Column(String, nullable=True) # optional
+    avatar = Column(String, nullable=True) # optional
+    birth_date = Column(Date, nullable=True) # optional
+    rating = Column(Float, default=5)  # reqr
+    # profile_images
+    
