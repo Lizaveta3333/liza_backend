@@ -1,15 +1,23 @@
 from fastapi import FastAPI
 from app.api import router
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
 from app.core.security import refresh_access_token_middleware
-from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def on_startup():
+    await create_tables()
+
+
 origins = [
     "http://localhost:3000",
-    "http://localhost",
     "http://192.168.1.30:3000",
+    "http://10.223.187.14:3000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000"
 ]
 
 app.add_middleware(
@@ -20,17 +28,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router.router) 
-
 app.middleware("http")(refresh_access_token_middleware)
+
+app.include_router(router.router) 
 
 # В проде через Alembic
 async def create_tables():
     async with engine.begin() as conn:
         # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-
-@app.on_event("startup")
-async def on_startup():
-    await create_tables()
 
