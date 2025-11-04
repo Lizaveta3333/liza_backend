@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy import Column, Integer, String, Float, Date, Boolean
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from app.core.database import Base
 
@@ -18,5 +18,6 @@ class User(AsyncAttrs, Base):
     avatar = Column(String, nullable=True) # optional
     birth_date = Column(Date, nullable=True) # optional
     rating = Column(Float, default=5)  # reqr
+    is_superuser = Column(Boolean, default=False, nullable=False)  # reqr
     # profile_images
     

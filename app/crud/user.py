@@ -35,7 +35,8 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
         avatar=user.avatar,
         about=user.about,
         birth_date=user.birth_date,
-        rating=user.rating
+        rating=user.rating if user.rating is not None else 5.0,
+        is_superuser=False  # Default to False for new users
     )
     db.add(new_user)
     await db.commit()
