@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Date, Boolean
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from app.core.database import Base
 
@@ -20,4 +21,7 @@ class User(AsyncAttrs, Base):
     rating = Column(Float, default=5)  # reqr
     is_superuser = Column(Boolean, default=False, nullable=False)  # reqr
     # profile_images
+    
+    # Relationships
+    products = relationship("Product", back_populates="seller", cascade="all, delete-orphan")
     
