@@ -56,7 +56,11 @@ def verify_jwt(token: str) -> Optional[Dict[str, Any]]:
         logging.warning(f"JWT verification failed: {e}")
         return None
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/auth/login",
+    scheme_name="Bearer",
+    description="Enter your JWT token (get it from /api/auth/login endpoint)"
+)
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -82,7 +86,8 @@ PUBLIC_ENDPOINTS = [
     "/api/users/all",
     "/docs",  # Swagger UI
     "/redoc",  # ReDoc
-    "/openapi.json"  # JSON-схема API
+    "/openapi.json",  # JSON-схема API
+    "/api/auth/login",  # Login endpoint for Swagger
 ]
 
 async def refresh_access_token_middleware(request: Request, call_next):

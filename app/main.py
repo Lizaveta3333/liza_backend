@@ -5,7 +5,14 @@ from app.core.database import engine, Base
 from app.core.security import refresh_access_token_middleware
 
 
-app = FastAPI()
+app = FastAPI(
+    title="Liza Backend API",
+    description="API для магазина продуктов",
+    version="1.0.0",
+    swagger_ui_init_oauth={
+        "usePkceWithAuthorizationCodeGrant": False,
+    }
+)
 
 @app.on_event("startup")
 async def on_startup():
@@ -17,7 +24,8 @@ origins = [
     "http://192.168.1.30:3000",
     "http://10.223.187.14:3000",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1:8000"
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",  # Swagger UI
 ]
 
 app.add_middleware(

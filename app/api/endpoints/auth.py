@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Request, Response, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import ResponseTokensSchema
 from app.crud.user import get_user_by_email_or_phone, create_user, get_user_by_id
 from app.utils.hashing import verify_password
@@ -31,15 +31,17 @@ async def register_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
 @router.post("/login", response_model=ResponseTokensSchema)
 async def login_user(
     response: Response, 
-    user: UserLogin,
-    db: AsyncSession = Depends(get_db),
-    # user: OAuth2PasswordRequestForm = Depends()
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
     ):
-    """Аутентификация пользователя"""
-    print("start login_user")
-    existing_user = await get_user_by_email_or_phone(db, phone=user.username)
-    print(existing_user)
-    if not existing_user or not verify_password(user.password, existing_user.hashed_password):
+    """
+    Аутентификация пользователя.
+    Используйте форму OAuth2 для входа в Swagger UI.
+    username = номер телефона
+    password = пароль
+    """
+    existing_user = await get_user_by_email_or_phone(db, phone=form_data.username)
+    if not existing_user or not verify_password(form_data.password, existing_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token({"sub": str(existing_user.id), "phone": existing_user.phone})
