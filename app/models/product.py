@@ -38,6 +38,7 @@ class Product(AsyncAttrs, Base):
 
     seller_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     seller = relationship("User", back_populates="products")
+    orders = relationship("Order", back_populates="product", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Product(id={self.id}, title='{self.title}', seller_id={self.seller_id})>"

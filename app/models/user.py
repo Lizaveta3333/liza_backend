@@ -24,4 +24,5 @@ class User(AsyncAttrs, Base):
     
     # Relationships
     products = relationship("Product", back_populates="seller", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="buyer", cascade="all, delete-orphan")
     
