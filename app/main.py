@@ -21,11 +21,13 @@ async def on_startup():
 
 origins = [
     "http://localhost:3000",
+    "http://localhost:3001",
     "http://192.168.1.30:3000",
     "http://10.223.187.14:3000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",  # Swagger UI
+    "https://osteitic-ossie-noncomprehensiblely.ngrok-free.dev",
 ]
 
 app.add_middleware(

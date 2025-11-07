@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.database import get_db
+from app.core.database import get_db, AsyncSessionLocal
 from app.crud.user import get_user_by_id
 from app.schemas.user import UserResponse
 
@@ -84,16 +84,45 @@ async def get_current_user(
 PUBLIC_ENDPOINTS = [
     "/api/auth/",
     "/api/users/all",
+    "/api/products/",  # Public product listing (GET)
+    "/api/products/category/",  # Public product by category
     "/docs",  # Swagger UI
     "/redoc",  # ReDoc
     "/openapi.json",  # JSON-схема API
     "/api/auth/login",  # Login endpoint for Swagger
 ]
 
-async def refresh_access_token_middleware(request: Request, call_next):
-    if any(request.url.path.startswith(endpoint) for endpoint in PUBLIC_ENDPOINTS):
-        return await call_next(request) 
+# Public GET endpoints that don't require authentication
+PUBLIC_GET_PATTERNS = [
+    "/api/products/",  # GET /api/products/ - list all products
+    "/api/products/category/",  # GET /api/products/category/{category}
+]
 
+async def refresh_access_token_middleware(request: Request, call_next):
+    # Allow public endpoints
+    if any(request.url.path.startswith(endpoint) for endpoint in PUBLIC_ENDPOINTS):
+        return await call_next(request)
+    
+    # Allow GET requests to public product endpoints
+    if request.method == "GET" and any(request.url.path.startswith(pattern) for pattern in PUBLIC_GET_PATTERNS):
+        return await call_next(request)
+    
+    # Allow GET requests to individual products (e.g., /api/products/1)
+    if request.method == "GET" and request.url.path.startswith("/api/products/") and request.url.path.count("/") == 3:
+        # Check if it's a numeric ID (not /api/products/my/ or /api/products/category/)
+        path_parts = request.url.path.split("/")
+        if len(path_parts) == 4 and path_parts[3].isdigit():
+            return await call_next(request) 
+
+    # Check for token in Authorization header first
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        payload = verify_jwt(token)
+        if payload:
+            return await call_next(request)
+
+    # Check for token in cookies
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
@@ -109,20 +138,25 @@ async def refresh_access_token_middleware(request: Request, call_next):
             if not user_id:
                 return JSONResponse(status_code=403, content={"detail": "Invalid refresh token"})
 
-            async for db in get_db():
-                user = await get_user_by_id(db, int(user_id))
-                if not user:
-                    return JSONResponse(status_code=403, content={"detail": "User not found"})
+            async with AsyncSessionLocal() as db:
+                try:
+                    user = await get_user_by_id(db, int(user_id))
+                    if not user:
+                        return JSONResponse(status_code=403, content={"detail": "User not found"})
 
-                new_access_token = create_access_token({"sub": str(user.id), "email": user.email})
-                new_refresh_token = create_refresh_token({"sub": str(user.id), "email": user.email})
+                    new_access_token = create_access_token({"sub": str(user.id), "phone": user.phone})
+                    new_refresh_token = create_refresh_token({"sub": str(user.id), "phone": user.phone})
 
-                response = await call_next(request)
-                response.set_cookie(key="access_token", value=new_access_token, httponly=True, samesite="Strict")
-                response.set_cookie(key="refresh_token", value=new_refresh_token, httponly=True, samesite="Strict")
-                return response
+                    response = await call_next(request)
+                    response.set_cookie(key="access_token", value=new_access_token, httponly=True, samesite="Strict")
+                    response.set_cookie(key="refresh_token", value=new_refresh_token, httponly=True, samesite="Strict")
+                    return response
+                except Exception as e:
+                    logging.error(f"Error refreshing token: {e}")
+                    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
-    return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    # If no token found, allow request through - let FastAPI dependency system handle auth requirement
+    return await call_next(request)
 
 
 

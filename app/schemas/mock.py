@@ -61,5 +61,3 @@ class MessageModelSchema(BaseModel):
     text: str
     date: str
     is_read: bool = False
-
-class 
