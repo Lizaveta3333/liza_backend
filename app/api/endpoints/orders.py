@@ -24,6 +24,7 @@ from app.crud.order import (
     get_orders_by_status,
     change_order_status
 )
+from app.services.kafka_service import send_order_event, get_kafka_status
 
 router = APIRouter()
 
@@ -60,6 +61,18 @@ async def create_new_order(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Product not found or insufficient stock"
         )
+    
+    # Send order creation event to Kafka
+    order_dict = {
+        "id": order.id,
+        "buyer_id": order.buyer_id,
+        "product_id": order.product_id,
+        "quantity": order.quantity,
+        "status": order.status,
+        "created_at": order.order_date.isoformat() if order.order_date else None,
+    }
+    send_order_event("order_created", order_dict)
+    
     return order
 
 
@@ -372,4 +385,30 @@ async def change_order_status_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid status change"
         )
+    
+    # Send order status change event to Kafka
+    order_dict = {
+        "id": updated.id,
+        "buyer_id": updated.buyer_id,
+        "product_id": updated.product_id,
+        "quantity": updated.quantity,
+        "status": updated.status,
+        "created_at": updated.order_date.isoformat() if updated.order_date else None,
+    }
+    send_order_event("order_status_changed", order_dict)
+    
     return updated
+
+
+@router.get(
+    "/test/kafka",
+    summary="Test Kafka connection",
+    description="Tests if Kafka is working and returns connection status"
+)
+async def test_kafka():
+    """
+    Tests Kafka connection and sends a test message.
+    Returns status information about Kafka producer and consumer.
+    """
+    status = get_kafka_status()
+    return status

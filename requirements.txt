@@ -7,3 +7,4 @@ passlib[bcrypt]
 python-jose[cryptography]
 pyjwt[crypto]
 python-dotenv
+kafka-python

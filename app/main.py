@@ -3,6 +3,7 @@ from app.api import router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
 from app.core.security import refresh_access_token_middleware
+from app.services.kafka_service import get_producer, start_consumer, close_producer, close_consumer
 
 
 app = FastAPI(
@@ -17,6 +18,16 @@ app = FastAPI(
 @app.on_event("startup")
 async def on_startup():
     await create_tables()
+    # Initialize Kafka producer and consumer
+    get_producer()
+    start_consumer()
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    # Close Kafka connections
+    close_producer()
+    close_consumer()
 
 
 origins = [
