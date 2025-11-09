@@ -8,3 +8,7 @@ python-jose[cryptography]
 pyjwt[crypto]
 python-dotenv
 kafka-python
+pytest
+pytest-asyncio
+httpx
+aiosqlite
