@@ -1,7 +1,8 @@
-from fastapi import FastAPI
-from app.api import router
+from fastapi import FastAPI, Request, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
+from app.api import router
 from app.core.security import refresh_access_token_middleware
 from app.services.kafka_service import get_producer, start_consumer, close_producer, close_consumer
 
@@ -48,6 +49,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions, especially 400 errors with nice formatting"""
+    if exc.status_code == status.HTTP_400_BAD_REQUEST:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": "Bad Request",
+                "message": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
+            }
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail if isinstance(exc.detail, str) else str(exc.detail),
+        }
+    )
+
 
 app.middleware("http")(refresh_access_token_middleware)
 
