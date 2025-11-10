@@ -40,6 +40,7 @@ origins = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",  # Swagger UI
     "https://osteitic-ossie-noncomprehensiblely.ngrok-free.dev",
+    "https://liza-frontend-app.onrender.com",  # Deployed frontend
 ]
 
 app.add_middleware(
