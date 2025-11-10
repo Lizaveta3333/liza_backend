@@ -69,6 +69,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "ok", "service": "Liza Backend API"}
+
+
 app.middleware("http")(refresh_access_token_middleware)
 
 app.include_router(router.router) 
